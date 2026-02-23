@@ -14,6 +14,7 @@
 // - Fully responsive (desktop/mobile) with custom UI
 // - Custom context menu (right-click) and left-click actions
 // - Custom confirmation modals
+// - First-time user mini guide (interactive tour)
 // ============================================
 
 ini_set('display_errors', 1);
@@ -820,7 +821,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == 1) {
             display: none; /* Chrome/Safari */
         }
 
-        .bottom-nav a {
+        .bottom-nav a, .bottom-nav button {
             display: inline-flex;
             flex-direction: column;
             align-items: center;
@@ -831,19 +832,22 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == 1) {
             transition: 0.2s;
             gap: 2px;
             flex-shrink: 0;
+            background: none;
+            border: none;
+            cursor: pointer;
         }
 
-        .bottom-nav a i {
+        .bottom-nav a i, .bottom-nav button i {
             font-size: 20px;
         }
 
-        .bottom-nav a.active, .bottom-nav a:hover {
+        .bottom-nav a.active, .bottom-nav a:hover, .bottom-nav button.active, .bottom-nav button:hover {
             color: var(--accent);
             background: rgba(255, 180, 71, 0.15);
         }
 
-        /* Hide desktop nav on mobile, show bottom nav */
-        @media (max-width: 768px) {
+        /* Hide desktop nav on mobile/tablet (width <= 900px) */
+        @media (max-width: 900px) {
             .desktop-nav {
                 display: none;
             }
@@ -899,7 +903,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == 1) {
             flex-wrap: nowrap;
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 900px) {
             .watch-nav {
                 gap: 4px;
             }
@@ -989,7 +993,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == 1) {
         .reply-form { margin-top: 20px; margin-left: 64px; }
         .replies { margin-left: 64px; }
 
-        @media (max-width: 768px) {
+        @media (max-width: 900px) {
             .reply-form { margin-left: 20px; }
             .replies { margin-left: 20px; }
         }
@@ -1085,7 +1089,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == 1) {
 
         .sort-select:focus { outline: none; border-color: var(--accent); }
 
-        /* ========== MODAL ========== */
+        /* ========== MODAL (GUIDE & CONFIRM) ========== */
         .modal {
             display: none;
             position: fixed;
@@ -1102,13 +1106,53 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == 1) {
             backdrop-filter: var(--glass-blur);
             padding: 32px;
             border-radius: 48px;
-            max-width: 400px;
+            max-width: 500px;
+            width: 90%;
             text-align: center;
             border: 1px solid var(--accent);
             box-shadow: 0 30px 60px rgba(0,0,0,0.8);
         }
 
-        .modal-buttons { display: flex; gap: 16px; justify-content: center; margin-top: 24px; }
+        .modal-buttons { display: flex; gap: 16px; justify-content: center; margin-top: 24px; flex-wrap: wrap; }
+
+        /* Guide specific */
+        .guide-slide {
+            display: none;
+        }
+        .guide-slide.active {
+            display: block;
+        }
+        .guide-slide h2 {
+            margin-bottom: 16px;
+            color: var(--accent);
+        }
+        .guide-slide p {
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+        .guide-slide i {
+            font-size: 48px;
+            color: var(--accent);
+            margin-bottom: 16px;
+        }
+        .guide-dots {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin: 20px 0;
+        }
+        .guide-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--text-secondary);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .guide-dot.active {
+            background: var(--accent);
+            transform: scale(1.2);
+        }
 
         /* ========== CONTEXT MENU ========== */
         .context-menu {
@@ -1177,7 +1221,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == 1) {
     </style>
 </head>
 <body>
-    <!-- DESKTOP NAVIGATION (hidden on mobile) -->
+    <!-- DESKTOP NAVIGATION (hidden on mobile/tablet) -->
     <div class="desktop-nav">
         <div class="container">
             <a href="?page=home" class="logo">AnimeWorld</a>
@@ -2051,6 +2095,69 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == 1) {
         </div>
     </div>
 
+    <!-- First-time user guide modal -->
+    <div class="modal" id="guideModal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div id="guideSlides">
+                <!-- Slide 1 -->
+                <div class="guide-slide active" data-index="0">
+                    <i class="fas fa-star"></i>
+                    <h2>Добро пожаловать в AnimeWorld!</h2>
+                    <p>Это краткое руководство поможет вам освоиться на сайте.</p>
+                    <p>Здесь вы найдете тысячи аниме, сможете добавлять в закладки, отмечать просмотренные серии и общаться с другими зрителями.</p>
+                </div>
+                <!-- Slide 2 -->
+                <div class="guide-slide" data-index="1">
+                    <i class="fas fa-compass"></i>
+                    <h2>Навигация</h2>
+                    <p>На компьютере меню находится сверху. На телефоне и планшете — снизу, его можно прокручивать горизонтально, чтобы увидеть все пункты.</p>
+                    <p>Используйте «Главная», «Поиск», «Новинки», а также личные разделы после входа.</p>
+                </div>
+                <!-- Slide 3 -->
+                <div class="guide-slide" data-index="2">
+                    <i class="fas fa-search"></i>
+                    <h2>Поиск и фильтры</h2>
+                    <p>На странице поиска вы можете искать по названию, фильтровать по жанрам и сортировать результаты по рейтингу, дате или названию.</p>
+                    <p>Кнопка «Загрузить ещё» подгружает следующие 100 тайтлов.</p>
+                </div>
+                <!-- Slide 4 -->
+                <div class="guide-slide" data-index="3">
+                    <i class="fas fa-layer-group"></i>
+                    <h2>Карточки аниме</h2>
+                    <p>На карточке отображается постер, название, жанр и количество серий. Если аниме добавлено в закладки, в углу появляется звездочка.</p>
+                    <p>Кликните по карточке, чтобы перейти на страницу аниме.</p>
+                </div>
+                <!-- Slide 5 -->
+                <div class="guide-slide" data-index="4">
+                    <i class="fas fa-bookmark"></i>
+                    <h2>Закладки и история</h2>
+                    <p>На странице аниме вы можете добавить его в закладки и выбрать категорию (В планах, Смотрю и т.д.).</p>
+                    <p>Просмотренные серии автоматически отмечаются и попадают в историю.</p>
+                </div>
+                <!-- Slide 6 -->
+                <div class="guide-slide" data-index="5">
+                    <i class="fas fa-comments"></i>
+                    <h2>Комментарии</h2>
+                    <p>Под плеером на странице просмотра можно оставлять комментарии, отвечать на другие, ставить лайки и дизлайки.</p>
+                    <p>Автор может редактировать или удалять свои сообщения.</p>
+                </div>
+                <!-- Slide 7 -->
+                <div class="guide-slide" data-index="6">
+                    <i class="fas fa-user"></i>
+                    <h2>Профиль</h2>
+                    <p>В профиле отображается ваша статистика, вы можете загрузить аватар и указать информацию о себе.</p>
+                    <p>Также доступны ваши закладки и история просмотров.</p>
+                </div>
+            </div>
+            <div class="guide-dots" id="guideDots"></div>
+            <div class="modal-buttons">
+                <button class="btn btn-outline" id="guidePrev"><i class="fas fa-arrow-left"></i> Назад</button>
+                <button class="btn" id="guideNext">Далее <i class="fas fa-arrow-right"></i></button>
+                <button class="btn btn-danger" id="guideClose">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
     <script>
     // Context menu
     document.addEventListener('contextmenu', function(e) {
@@ -2125,6 +2232,69 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == 1) {
             link.classList.add('active');
         }
     });
+
+    // First-time guide
+    (function() {
+        const guideModal = document.getElementById('guideModal');
+        const slides = document.querySelectorAll('.guide-slide');
+        const dotsContainer = document.getElementById('guideDots');
+        const prevBtn = document.getElementById('guidePrev');
+        const nextBtn = document.getElementById('guideNext');
+        const closeBtn = document.getElementById('guideClose');
+        let currentSlide = 0;
+
+        // Create dots
+        slides.forEach((_, i) => {
+            const dot = document.createElement('span');
+            dot.classList.add('guide-dot');
+            dot.dataset.index = i;
+            dot.addEventListener('click', () => goToSlide(i));
+            dotsContainer.appendChild(dot);
+        });
+        const dots = document.querySelectorAll('.guide-dot');
+
+        function updateDots() {
+            dots.forEach((dot, i) => {
+                dot.classList.toggle('active', i === currentSlide);
+            });
+        }
+
+        function goToSlide(index) {
+            slides.forEach(s => s.classList.remove('active'));
+            slides[index].classList.add('active');
+            currentSlide = index;
+            updateDots();
+        }
+
+        function nextSlide() {
+            if (currentSlide < slides.length - 1) {
+                goToSlide(currentSlide + 1);
+            } else {
+                // Last slide, close guide
+                guideModal.style.display = 'none';
+                localStorage.setItem('guideSeen', 'true');
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) {
+                goToSlide(currentSlide - 1);
+            }
+        }
+
+        nextBtn.addEventListener('click', nextSlide);
+        prevBtn.addEventListener('click', prevSlide);
+        closeBtn.addEventListener('click', function() {
+            guideModal.style.display = 'none';
+            localStorage.setItem('guideSeen', 'true');
+        });
+
+        // Check if first visit
+        if (!localStorage.getItem('guideSeen')) {
+            guideModal.style.display = 'flex';
+            goToSlide(0);
+        }
+    })();
     </script>
 </body>
 </html>
