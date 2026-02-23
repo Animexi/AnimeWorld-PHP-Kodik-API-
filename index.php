@@ -107,7 +107,7 @@ try {
 // ============================================
 // Kodik API Configuration
 // ============================================
-define('KODIK_TOKEN', '8ebf915587af48d001d33127ae55dcb3');
+define('KODIK_TOKEN', 'ИСПОЛЬЗУЙТЕ ВАШ API КЛЮЧ');
 define('KODIK_API_URL', 'https://kodikapi.com');
 define('DEFAULT_LIMIT', 100); // Increased limit to 100
 
